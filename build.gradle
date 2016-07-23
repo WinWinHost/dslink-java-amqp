@@ -1,0 +1,38 @@
+apply plugin: 'java'
+apply plugin: 'findbugs'
+apply plugin: 'application'
+
+version '0.0.1'
+
+mainClassName = 'org.dsa.iot.amqp.Main'
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+}
+
+dependencies {
+    compile 'org.iot-dsa:dslink:0.16.0-SNAPSHOT'
+    compile 'org.iot-dsa:commons:0.16.0-SNAPSHOT'
+    compile 'org.iot-dsa:historian:0.16.0-SNAPSHOT'
+    compile 'com.rabbitmq:amqp-client:3.6.3'
+}
+
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+run {
+    args System.getProperty("exec.args", "").split()
+    workingDir project.buildDir
+}
+
+applicationDistribution.from new File(project.projectDir, "/dslink.json")
