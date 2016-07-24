@@ -1,6 +1,7 @@
 package org.dsa.iot.amqp;
 
 import com.rabbitmq.client.*;
+import org.dsa.iot.amqp.server.ListDataHandler;
 import org.dsa.iot.amqp.server.SubscribeDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,10 @@ public class ServerInputRequestHandler extends DefaultConsumer {
         if (parts.length == 2 && "subscribe".equals(parts[0])) {
             String path = parts[1];
             SubscribeDataHandler handler = new SubscribeDataHandler(provider, path);
+            provider.addRequestHandler(handler);
+        } else if (parts.length == 2 && "list".equals(parts[0])) {
+            String path = parts[1];
+            ListDataHandler handler = new ListDataHandler(provider, path);
             provider.addRequestHandler(handler);
         }
 

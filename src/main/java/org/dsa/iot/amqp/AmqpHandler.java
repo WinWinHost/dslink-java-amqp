@@ -17,6 +17,7 @@ public class AmqpHandler extends DSLinkHandler {
     private DSLink requesterLink;
     private DSLink responderLink;
     private RequesterSubscribeContainer subscribeContainer;
+    private RequesterListContainer listContainer;
 
     @Override
     public void onRequesterInitialized(DSLink link) {
@@ -24,6 +25,7 @@ public class AmqpHandler extends DSLinkHandler {
 
         this.requesterLink = link;
         this.subscribeContainer = new RequesterSubscribeContainer(requesterLink);
+        this.listContainer = new RequesterListContainer(requesterLink);
 
         LOG.info("Requester Initialized.");
         fullInitialize();
@@ -74,6 +76,10 @@ public class AmqpHandler extends DSLinkHandler {
 
     public RequesterSubscribeContainer getSubscribeContainer() {
         return subscribeContainer;
+    }
+
+    public RequesterListContainer getListContainer() {
+        return listContainer;
     }
 
     private boolean hasInitialized = false;
