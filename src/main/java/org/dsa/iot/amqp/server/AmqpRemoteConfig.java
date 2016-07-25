@@ -1,4 +1,4 @@
-package org.dsa.iot.amqp;
+package org.dsa.iot.amqp.server;
 
 public class AmqpRemoteConfig {
     private final String url;

@@ -1,6 +1,7 @@
-package org.dsa.iot.amqp;
+package org.dsa.iot.amqp.server;
 
 import org.dsa.iot.dslink.DSLink;
+import org.dsa.iot.dslink.methods.responses.ListResponse;
 import org.dsa.iot.dslink.methods.responses.UnsubscribeResponse;
 import org.dsa.iot.dslink.node.value.SubscriptionValue;
 import org.dsa.iot.dslink.util.handler.Handler;
@@ -31,6 +32,13 @@ public class RequesterSubscribeContainer {
         if (entries.containsKey(path)) {
             entries.get(path).removeHandler(handler);
         }
+    }
+
+    public SubscriptionValue getCurrentState(String path) {
+        if (entries.containsKey(path)) {
+            return entries.get(path).lastValue;
+        }
+        return null;
     }
 
     public class RequesterSubscribeEntry {

@@ -1,5 +1,6 @@
-package org.dsa.iot.amqp;
+package org.dsa.iot.amqp.server;
 
+import org.dsa.iot.amqp.AmqpHandler;
 import org.dsa.iot.dslink.node.Node;
 import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.value.Value;

@@ -1,4 +1,4 @@
-package org.dsa.iot.amqp;
+package org.dsa.iot.amqp.server;
 
 import org.dsa.iot.dslink.DSLink;
 import org.dsa.iot.dslink.methods.requests.ListRequest;
@@ -32,6 +32,13 @@ public class RequesterListContainer {
         if (entries.containsKey(path)) {
             entries.get(path).removeHandler(handler);
         }
+    }
+
+    public ListResponse getCurrentState(String path) {
+        if (entries.containsKey(path)) {
+            return entries.get(path).lastEvent;
+        }
+        return null;
     }
 
     public class RequesterListEntry {

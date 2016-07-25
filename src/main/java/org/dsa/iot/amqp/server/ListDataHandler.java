@@ -1,17 +1,14 @@
 package org.dsa.iot.amqp.server;
 
 import com.rabbitmq.client.MessageProperties;
-import org.dsa.iot.amqp.AmqpRemoteProvider;
-import org.dsa.iot.amqp.RequesterListContainer;
 import org.dsa.iot.dslink.methods.responses.ListResponse;
-import org.dsa.iot.dslink.node.value.ValueUtils;
 import org.dsa.iot.dslink.util.handler.Handler;
 import org.dsa.iot.dslink.util.json.EncodingFormat;
 import org.dsa.iot.dslink.util.json.JsonArray;
 
 import java.io.IOException;
 
-public class ListDataHandler implements RequestHandler {
+public class ListDataHandler implements RequestHandler, HandlesInitialState {
     private final String exchangeName;
     private final String path;
     private final AmqpRemoteProvider provider;
@@ -34,6 +31,26 @@ public class ListDataHandler implements RequestHandler {
     public void destroy() {
         RequesterListContainer container = provider.getHandler().getListContainer();
         container.unsubscribe(path, eventHandler);
+    }
+
+    @Override
+    public void handleInitialState(String receiverQueue) {
+        RequesterListContainer container = provider.getHandler().getListContainer();
+        ListResponse response = container.getCurrentState(path);
+
+        if (response != null) {
+            JsonArray array = response.getJsonResponse(null).get("updates");
+            try {
+                provider.getChannel().basicPublish(
+                        null,
+                        receiverQueue,
+                        MessageProperties.BASIC,
+                        array.encode(EncodingFormat.MESSAGE_PACK)
+                );
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public class EventHandler implements Handler<ListResponse> {

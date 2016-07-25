@@ -1,9 +1,9 @@
-package org.dsa.iot.amqp;
+package org.dsa.iot.amqp.server;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import org.dsa.iot.amqp.server.RequestHandler;
+import org.dsa.iot.amqp.AmqpHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,11 +52,20 @@ public class AmqpRemoteProvider {
     }
 
     public void addRequestHandler(RequestHandler handler) {
+        addRequestHandler(handler, null);
+    }
+
+    public void addRequestHandler(RequestHandler handler, String receiverQueue) {
         if (!requestHandlers.contains(handler)) {
             requestHandlers.add(handler);
             handler.init();
         } else {
-            LOG.debug("Found an equivalent request handler in the active handlers already. Skipping.");
+            if (handler instanceof HandlesInitialState && receiverQueue != null) {
+                LOG.debug("Found an equivalent request handler in the active handlers already. Sending initial state.");
+                ((HandlesInitialState) handler).handleInitialState(receiverQueue);
+            } else {
+                LOG.debug("Found an equivalent request handler in the active handlers already. Skipping.");
+            }
         }
     }
 

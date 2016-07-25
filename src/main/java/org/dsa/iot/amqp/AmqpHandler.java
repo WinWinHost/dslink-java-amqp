@@ -1,5 +1,7 @@
 package org.dsa.iot.amqp;
 
+import org.dsa.iot.amqp.client.AmqpClientController;
+import org.dsa.iot.amqp.server.*;
 import org.dsa.iot.dslink.DSLink;
 import org.dsa.iot.dslink.DSLinkHandler;
 import org.dsa.iot.dslink.node.Node;
@@ -115,6 +117,8 @@ public class AmqpHandler extends DSLinkHandler {
         for (Node node : superRoot.getChildren().values()) {
             if (node.getConfig("server") != null && node.getConfig("server").getBool()) {
                 initializeServerNode(node);
+            } else if (node.getConfig("client") != null && node.getConfig("client").getBool()) {
+                initializeClientNode(node);
             }
         }
     }
@@ -129,6 +133,17 @@ public class AmqpHandler extends DSLinkHandler {
         } catch (Exception e) {
             e.printStackTrace();
             provider.destroy();
+        }
+    }
+
+    public void initializeClientNode(Node node) {
+        String url = node.getConfig("amqp_url").getString();
+        String brokerName = node.getConfig("amqp_target").getString();
+        AmqpClientController controller = new AmqpClientController(url, brokerName, node);
+        try {
+            controller.init();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
