@@ -210,7 +210,7 @@ public class AmqpNodeController {
             }
         }
 
-        NodeBuilders.applyMultiChildBuilders((AmqpFakeNode) node, childQueue);
+        AmqpNodeBuilders.applyMultiChildBuilders((AmqpFakeNode) node, childQueue);
     }
 
     public void applyCreatedAttribute(NodeBuilder n, String key, Object mvalue) {

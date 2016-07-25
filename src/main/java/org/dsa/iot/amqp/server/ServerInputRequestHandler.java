@@ -9,9 +9,9 @@ import java.io.IOException;
 public class ServerInputRequestHandler extends DefaultConsumer {
     private static final Logger LOG = LoggerFactory.getLogger(ServerInputRequestHandler.class);
 
-    private AmqpRemoteProvider provider;
+    private AmqpRemoteController provider;
 
-    public ServerInputRequestHandler(AmqpRemoteProvider provider) {
+    public ServerInputRequestHandler(AmqpRemoteController provider) {
         super(provider.getChannel());
         this.provider = provider;
     }

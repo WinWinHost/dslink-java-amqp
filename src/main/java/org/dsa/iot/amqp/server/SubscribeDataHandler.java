@@ -10,19 +10,19 @@ import org.dsa.iot.dslink.util.json.JsonArray;
 import java.io.IOException;
 
 public class SubscribeDataHandler implements RequestHandler, HandlesInitialState {
-    private AmqpRemoteProvider provider;
+    private AmqpRemoteController provider;
     private String path;
     private ValueHandler valueHandler;
     private String exchangeName;
 
-    public SubscribeDataHandler(AmqpRemoteProvider provider, String path) {
+    public SubscribeDataHandler(AmqpRemoteController provider, String path) {
         this.provider = provider;
         this.path = path;
         this.valueHandler = new ValueHandler();
         this.exchangeName = provider.getBrokerPathPrefix("subscribe." + path);
     }
 
-    public AmqpRemoteProvider getProvider() {
+    public AmqpRemoteController getProvider() {
         return provider;
     }
 

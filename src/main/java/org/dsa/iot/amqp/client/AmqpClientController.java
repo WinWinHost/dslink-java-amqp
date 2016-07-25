@@ -1,6 +1,9 @@
 package org.dsa.iot.amqp.client;
 
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.MessageProperties;
 import org.dsa.iot.dslink.node.Node;
 import org.dsa.iot.dslink.util.StringUtils;
 
@@ -17,6 +20,8 @@ public class AmqpClientController {
         this.url = url;
         this.targetBroker = targetBroker;
         this.node = node;
+
+        node.setMetaData(this);
     }
 
     public void init() throws Exception {

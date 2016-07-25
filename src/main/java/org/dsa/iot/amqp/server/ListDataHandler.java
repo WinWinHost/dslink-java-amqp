@@ -11,10 +11,10 @@ import java.io.IOException;
 public class ListDataHandler implements RequestHandler, HandlesInitialState {
     private final String exchangeName;
     private final String path;
-    private final AmqpRemoteProvider provider;
+    private final AmqpRemoteController provider;
     private final EventHandler eventHandler;
 
-    public ListDataHandler(AmqpRemoteProvider provider, String path) {
+    public ListDataHandler(AmqpRemoteController provider, String path) {
         this.provider = provider;
         this.path = path;
         this.exchangeName = provider.getBrokerPathPrefix("list." + path);

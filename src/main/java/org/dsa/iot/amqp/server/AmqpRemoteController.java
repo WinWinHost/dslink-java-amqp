@@ -4,6 +4,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.dsa.iot.amqp.AmqpHandler;
+import org.dsa.iot.dslink.node.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,19 +12,23 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
-public class AmqpRemoteProvider {
-    private static final Logger LOG = LoggerFactory.getLogger(AmqpRemoteProvider.class);
+public class AmqpRemoteController {
+    private static final Logger LOG = LoggerFactory.getLogger(AmqpRemoteController.class);
 
     private AmqpHandler handler;
     private AmqpRemoteConfig config;
     private Channel channel;
     private ArrayList<RequestHandler> requestHandlers;
     private ServerInputRequestHandler inputRequestHandler;
+    private Node node;
 
-    public AmqpRemoteProvider(AmqpHandler handler, AmqpRemoteConfig config) {
+    public AmqpRemoteController(AmqpHandler handler, AmqpRemoteConfig config, Node node) {
         this.handler = handler;
         this.config = config;
         this.requestHandlers = new ArrayList<>();
+        this.node = node;
+
+        node.setMetaData(this);
     }
 
     public AmqpHandler getHandler() {
@@ -88,5 +93,9 @@ public class AmqpRemoteProvider {
 
     public ServerInputRequestHandler getInputRequestHandler() {
         return inputRequestHandler;
+    }
+
+    public Node getNode() {
+        return node;
     }
 }
