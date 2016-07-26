@@ -10,6 +10,7 @@ import org.dsa.iot.dslink.node.Permission;
 import org.dsa.iot.dslink.node.Writable;
 import org.dsa.iot.dslink.node.actions.*;
 import org.dsa.iot.dslink.node.value.Value;
+import org.dsa.iot.dslink.node.value.ValuePair;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.node.value.ValueUtils;
 import org.dsa.iot.dslink.util.handler.Handler;
@@ -86,6 +87,12 @@ public class AmqpNodeController {
             public void handle(Node event) {
                 subscribeHandles--;
                 checkSubscribeHandles();
+            }
+        });
+
+        node.getListener().setValueHandler(new Handler<ValuePair>() {
+            @Override
+            public void handle(ValuePair event) {
             }
         });
     }
@@ -322,8 +329,6 @@ public class AmqpNodeController {
             listQueueConsumer = controller.getChannel().basicConsume(listQueue, listHandler);
             String exchange = controller.getBrokerPrefix("list."  + dsaPath);
 
-            System.out.println("SEND TO " + exchange);
-
             controller.getChannel().exchangeDeclare(exchange, "fanout");
             controller.getChannel().queueBind(listQueue, exchange, "");
             controller.sendBrokerRequest(new String[] {
@@ -342,6 +347,10 @@ public class AmqpNodeController {
         try {
             controller.getChannel().basicCancel(listQueueConsumer);
             controller.getChannel().queueDelete(listQueue);
+            controller.sendBrokerRequest(new String[] {
+                    "unlist",
+                    dsaPath
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -374,6 +383,10 @@ public class AmqpNodeController {
         try {
             controller.getChannel().basicCancel(subscribeQueueConsumer);
             controller.getChannel().queueDelete(subscribeQueue);
+            controller.sendBrokerRequest(new String[] {
+                    "unsubscribe",
+                    dsaPath
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -56,20 +56,19 @@ public class AmqpRemoteController {
         return channel;
     }
 
-    public void addRequestHandler(RequestHandler handler) {
-        addRequestHandler(handler, null);
-    }
-
     public void addRequestHandler(RequestHandler handler, String receiverQueue) {
         if (!requestHandlers.contains(handler)) {
             requestHandlers.add(handler);
-            handler.init();
+            handler.onListenerAdded();
         } else {
-            if (handler instanceof HandlesInitialState && receiverQueue != null) {
-                LOG.debug("Found an equivalent request handler in the active handlers already. Sending initial state.");
-                ((HandlesInitialState) handler).handleInitialState(receiverQueue);
-            } else {
-                LOG.debug("Found an equivalent request handler in the active handlers already. Skipping.");
+            handler = findEquivalentHandler(handler);
+
+            if (handler != null) {
+                handler.onListenerAdded();
+
+                if (receiverQueue != null && handler instanceof HandlesInitialState) {
+                    ((HandlesInitialState) handler).handleInitialState(receiverQueue);
+                }
             }
         }
     }
@@ -85,7 +84,7 @@ public class AmqpRemoteController {
             try {
                 channel.close();
             } catch (IOException | TimeoutException e) {
-                e.printStackTrace();
+                LOG.warn("Error while closing AMQP channel.", e);
             }
             channel = null;
         }
@@ -97,5 +96,19 @@ public class AmqpRemoteController {
 
     public Node getNode() {
         return node;
+    }
+
+    public void removeRequestHandler(RequestHandler handler) {
+        requestHandlers.remove(handler);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T findEquivalentHandler(T handler) {
+        for (RequestHandler r : requestHandlers) {
+            if (handler.equals(r)) {
+                return (T) r;
+            }
+        }
+        return null;
     }
 }
