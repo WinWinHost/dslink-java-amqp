@@ -1,6 +1,8 @@
 package org.dsa.iot.amqp;
 
 import org.dsa.iot.amqp.client.AmqpClientController;
+import org.dsa.iot.amqp.client.CreateClientAction;
+import org.dsa.iot.amqp.client.RemoveClientAction;
 import org.dsa.iot.amqp.server.*;
 import org.dsa.iot.dslink.DSLink;
 import org.dsa.iot.dslink.DSLinkHandler;
@@ -114,6 +116,20 @@ public class AmqpHandler extends DSLinkHandler {
                     .build();
         }
 
+        {
+            Action action = new Action(Permission.CONFIG, new CreateClientAction(this))
+                    .addParameter(new Parameter("name", ValueType.STRING).setPlaceHolder("My Client"))
+                    .addParameter(new Parameter("targetBrokerId", ValueType.STRING).setPlaceHolder("mysrv123"))
+                    .addParameter(new Parameter("url", ValueType.STRING).setPlaceHolder("amqp://my.host/vhost"));
+
+            superRoot
+                    .createChild("createAmqpClient")
+                    .setDisplayName("Create AMQP Data Client")
+                    .setAction(action)
+                    .setSerializable(false)
+                    .build();
+        }
+
         for (Node node : superRoot.getChildren().values()) {
             if (node.getConfig("server") != null && node.getConfig("server").getBool()) {
                 initializeServerNode(node);
@@ -124,10 +140,21 @@ public class AmqpHandler extends DSLinkHandler {
     }
 
     public void initializeServerNode(Node node) {
+        {
+            Action action = new Action(Permission.CONFIG, new RemoveServerAction(node));
+
+            node
+                    .createChild("remove")
+                    .setDisplayName("Remove")
+                    .setAction(action)
+                    .setSerializable(false)
+                    .build();
+        }
+
         String url = node.getConfig("amqp_url").getString();
         String brokerName = node.getConfig("amqp_name").getString();
         AmqpRemoteConfig config = new AmqpRemoteConfig(url, brokerName);
-        AmqpRemoteProvider provider = new AmqpRemoteProvider(this, config);
+        AmqpRemoteController provider = new AmqpRemoteController(this, config, node);
         try {
             provider.init();
         } catch (Exception e) {
@@ -137,6 +164,17 @@ public class AmqpHandler extends DSLinkHandler {
     }
 
     public void initializeClientNode(Node node) {
+        {
+            Action action = new Action(Permission.CONFIG, new RemoveClientAction(node));
+
+            node
+                    .createChild("remove")
+                    .setDisplayName("Remove")
+                    .setAction(action)
+                    .setSerializable(false)
+                    .build();
+        }
+
         String url = node.getConfig("amqp_url").getString();
         String brokerName = node.getConfig("amqp_target").getString();
         AmqpClientController controller = new AmqpClientController(url, brokerName, node);

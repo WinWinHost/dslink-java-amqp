@@ -9,9 +9,9 @@ import java.io.IOException;
 public class ServerInputRequestHandler extends DefaultConsumer {
     private static final Logger LOG = LoggerFactory.getLogger(ServerInputRequestHandler.class);
 
-    private AmqpRemoteProvider provider;
+    private AmqpRemoteController provider;
 
-    public ServerInputRequestHandler(AmqpRemoteProvider provider) {
+    public ServerInputRequestHandler(AmqpRemoteController provider) {
         super(provider.getChannel());
         this.provider = provider;
     }
@@ -31,6 +31,22 @@ public class ServerInputRequestHandler extends DefaultConsumer {
             String receiverQueue = parts.length > 2 ? parts[2] : null;
             ListDataHandler handler = new ListDataHandler(provider, path);
             provider.addRequestHandler(handler, receiverQueue);
+        } else if (parts.length >= 2 && "unlist".equals(parts[0])) {
+            String path = parts[1];
+            ListDataHandler handler = new ListDataHandler(provider, path);
+            handler = provider.findEquivalentHandler(handler);
+
+            if (handler != null) {
+                handler.onListenerRemoved();
+            }
+        } else if (parts.length >= 2 && "unsubscribe".equals(parts[0])) {
+            String path = parts[1];
+            SubscribeDataHandler handler = new SubscribeDataHandler(provider, path);
+            handler = provider.findEquivalentHandler(handler);
+
+            if (handler != null) {
+                handler.onListenerRemoved();
+            }
         }
 
         getChannel().basicAck(envelope.getDeliveryTag(), false);

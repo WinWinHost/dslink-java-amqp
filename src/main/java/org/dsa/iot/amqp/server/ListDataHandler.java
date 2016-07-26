@@ -8,58 +8,48 @@ import org.dsa.iot.dslink.util.json.JsonArray;
 
 import java.io.IOException;
 
-public class ListDataHandler implements RequestHandler, HandlesInitialState {
+public class ListDataHandler extends MultiListenerRequestHandler {
     private final String exchangeName;
     private final String path;
-    private final AmqpRemoteProvider provider;
     private final EventHandler eventHandler;
 
-    public ListDataHandler(AmqpRemoteProvider provider, String path) {
-        this.provider = provider;
+    private JsonArray lastListUpdates;
+
+    public ListDataHandler(AmqpRemoteController controller, String path) {
+        super(controller);
         this.path = path;
-        this.exchangeName = provider.getBrokerPathPrefix("list." + path);
+        this.exchangeName = controller.getBrokerPathPrefix("list." + path);
         this.eventHandler = new EventHandler();
     }
 
     @Override
     public void init() {
-        RequesterListContainer container = provider.getHandler().getListContainer();
+        RequesterListContainer container = getController().getHandler().getListContainer();
         container.subscribe(path, eventHandler);
     }
 
     @Override
-    public void destroy() {
-        RequesterListContainer container = provider.getHandler().getListContainer();
-        container.unsubscribe(path, eventHandler);
+    public byte[] getCurrentState() {
+        if (lastListUpdates != null) {
+            return lastListUpdates.encode(EncodingFormat.MESSAGE_PACK);
+        } else {
+            return new byte[0];
+        }
     }
 
     @Override
-    public void handleInitialState(String receiverQueue) {
-        RequesterListContainer container = provider.getHandler().getListContainer();
-        ListResponse response = container.getCurrentState(path);
-
-        if (response != null) {
-            JsonArray array = response.getJsonResponse(null).get("updates");
-            try {
-                provider.getChannel().basicPublish(
-                        null,
-                        receiverQueue,
-                        MessageProperties.BASIC,
-                        array.encode(EncodingFormat.MESSAGE_PACK)
-                );
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    public void destroy() {
+        RequesterListContainer container = getController().getHandler().getListContainer();
+        container.unsubscribe(path, eventHandler);
     }
 
     public class EventHandler implements Handler<ListResponse> {
         @Override
         public void handle(ListResponse event) {
-            JsonArray array = event.getJsonResponse(null).get("updates");
+            JsonArray array = lastListUpdates = event.getJsonResponse(null).get("updates");
 
             try {
-                provider.getChannel().basicPublish(
+                getController().getChannel().basicPublish(
                         exchangeName,
                         "",
                         MessageProperties.BASIC,

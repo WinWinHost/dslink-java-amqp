@@ -6,7 +6,7 @@ import org.dsa.iot.dslink.node.NodeBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NodeBuilders {
+public class AmqpNodeBuilders {
     public static void applyMultiChildBuilders(AmqpFakeNode owner, List<NodeBuilder> builders) {
         List<Node> nodes = new ArrayList<>();
         for (NodeBuilder builder : builders) {

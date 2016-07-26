@@ -9,78 +9,63 @@ import org.dsa.iot.dslink.util.json.JsonArray;
 
 import java.io.IOException;
 
-public class SubscribeDataHandler implements RequestHandler, HandlesInitialState {
-    private AmqpRemoteProvider provider;
+public class SubscribeDataHandler extends MultiListenerRequestHandler {
     private String path;
     private ValueHandler valueHandler;
     private String exchangeName;
+    private SubscriptionValue lastValue;
 
-    public SubscribeDataHandler(AmqpRemoteProvider provider, String path) {
-        this.provider = provider;
+    public SubscribeDataHandler(AmqpRemoteController controller, String path) {
+        super(controller);
         this.path = path;
         this.valueHandler = new ValueHandler();
-        this.exchangeName = provider.getBrokerPathPrefix("subscribe." + path);
-    }
-
-    public AmqpRemoteProvider getProvider() {
-        return provider;
-    }
-
-    public String getPath() {
-        return path;
+        this.exchangeName = controller.getBrokerPathPrefix("subscribe." + path);
     }
 
     @Override
     public void init() {
-        RequesterSubscribeContainer container = provider.getHandler().getSubscribeContainer();
+        RequesterSubscribeContainer container = getController().getHandler().getSubscribeContainer();
         container.subscribe(path, valueHandler);
     }
 
     @Override
-    public void destroy() {
-        RequesterSubscribeContainer container = provider.getHandler().getSubscribeContainer();
-        container.unsubscribe(path, valueHandler);
-        try {
-            provider.getChannel().exchangeDelete(exchangeName);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public byte[] getCurrentState() {
+        JsonArray array = new JsonArray();
+
+        if (lastValue != null) {
+            array.add(ValueUtils.toObject(lastValue.getValue()));
+            array.add(lastValue.getValue().getTimeStamp());
+            return array.encode(EncodingFormat.MESSAGE_PACK);
+        } else {
+            return new byte[0];
         }
     }
 
     @Override
-    public void handleInitialState(String receiverQueue) {
-        RequesterSubscribeContainer container = provider.getHandler().getSubscribeContainer();
-        SubscriptionValue event = container.getCurrentState(path);
-        if (event != null) {
-            JsonArray array = new JsonArray();
-            array.add(ValueUtils.toObject(event.getValue()));
-            array.add(event.getValue().getTimeStamp());
-
-            try {
-                provider.getChannel().basicPublish(
-                        null,
-                        receiverQueue,
-                        MessageProperties.BASIC,
-                        array.encode(EncodingFormat.MESSAGE_PACK)
-                );
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    public void destroy() {
+        RequesterSubscribeContainer container = getController().getHandler().getSubscribeContainer();
+        container.unsubscribe(path, valueHandler);
+        try {
+            getController().getChannel().exchangeDelete(exchangeName);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     public class ValueHandler implements Handler<SubscriptionValue> {
         @Override
         public void handle(SubscriptionValue event) {
+            lastValue = event;
+
             JsonArray array = new JsonArray();
             array.add(ValueUtils.toObject(event.getValue()));
             array.add(event.getValue().getTimeStamp());
 
             try {
-                provider.getChannel().basicPublish(
+                getController().getChannel().basicPublish(
                         exchangeName,
                         "",
-                        MessageProperties.BASIC,
+                        MessageProperties.PERSISTENT_BASIC,
                         array.encode(EncodingFormat.MESSAGE_PACK)
                 );
             } catch (IOException e) {
