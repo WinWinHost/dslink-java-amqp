@@ -17,9 +17,9 @@ repositories {
 }
 
 dependencies {
-    compile 'org.iot-dsa:dslink:0.16.0-SNAPSHOT'
-    compile 'org.iot-dsa:commons:0.16.0-SNAPSHOT'
-    compile 'org.iot-dsa:historian:0.16.0-SNAPSHOT'
+    compile 'org.iot-dsa:dslink:0.16.0'
+    compile 'org.iot-dsa:commons:0.16.0'
+    compile 'org.iot-dsa:historian:0.16.0'
     compile 'com.rabbitmq:amqp-client:3.6.3'
 }
 
